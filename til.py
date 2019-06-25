@@ -1,6 +1,10 @@
 import datetime
 import config
-from flask import Flask, render_template, request, redirect, url_for
+import hashlib
+import binascii
+from functools import wraps
+from flask import Flask, Response, render_template, request, redirect, url_for
+from hmac import compare_digest as compare
 from flask_sqlalchemy import SQLAlchemy
 
 # app globals
@@ -13,6 +17,51 @@ db = SQLAlchemy(app)
 def render(template, **kw):
     kw["blog_name"] = config.BLOG_NAME
     return render_template(template, **kw)
+
+
+def hash_password(password):
+    """Returns a ASCII hex password hash using PBKDF2 configuration.
+    """
+    password = password.encode("utf-8")
+    h = hashlib.pbkdf2_hmac("sha256", password, config.SALT, config.ITERATIONS)
+    return binascii.hexlify(h)
+
+
+def credentials_valid(username, password):
+    """Returns a boolean indicating if the submitted credentials are valid.
+    """
+    pw_hash = hash_password(password)
+    username_valid = compare(username, config.USERNAME)
+    password_valid = compare(pw_hash, config.PASSWORD_HASH)
+    return username_valid & password_valid
+
+
+def authentication_prompt():
+    """Prompts for HTTP Basic Auth
+    """
+    return Response(
+        "please submit credentials",
+        401,
+        {"WWW-Authenticate": 'Basic realm="Login Required"'},
+    )
+
+
+def auth(f):
+    """A decorator to add HTTP Basic Auth to routes.
+
+    If the user has configured a None username, no authentication is required.
+    """
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        creds = request.authorization
+        if config.USERNAME is None:
+            return f(*args, **kwargs)
+        if not creds or not credentials_valid(creds.username, creds.password):
+            return authentication_prompt()
+        return f(*args, **kwargs)
+
+    return decorated
 
 
 # models
@@ -98,6 +147,7 @@ class PostTag(db.Model):
 
 # routes
 @app.route("/", methods=["GET"])
+@auth
 def index():
     """list all existing `Post`s.
     """
@@ -106,6 +156,7 @@ def index():
 
 
 @app.route("/", methods=["POST"])
+@auth
 def create():
     """create a new `Post`.
     """
@@ -117,7 +168,15 @@ def create():
 
 
 if __name__ == "__main__":
-    db.create_all()
-    with open("README.md", "r") as rf:
-        Post.create(text=rf.read(), tag_string="blogging")
-        db.session.commit()
+    import sys
+
+    if len(sys.argv) == 1:
+        print("initializing sqlite")
+        db.create_all()
+        with open("README.md", "r") as rf:
+            Post.create(text=rf.read(), tag_string="blogging")
+            db.session.commit()
+    if len(sys.argv) == 2:
+        print("password hash:")
+        password = sys.argv[1]
+        print(hash_password(password))

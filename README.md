@@ -2,9 +2,11 @@
 
 TIL is a write-once microblogging application.
 
-## installation
+## configuration
 
 Configuration is done via `config.py`.
+
+## installation
 
 ```
 $ # initialize the database
