@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='highlightjs.css') }}">
+        <script src="{{ url_for('static', filename='highlight.js') }}"></script>
+    </head>
+    <body>
+        <h1>{{ blog_name }}</h1>
+            <p>a write-once microblog</p>
+            <h2>new</h2>
+            <form id="newtil" method="post" action="{{ url_for('create') }}">
+                <textarea form="newtil" name="text" autofocus></textarea><br>
+                tags: <input type="text" name="tags">
+                <button type="submit">submit</button>
+            </form>
+            <h2>past</h2>
+            {% for post in posts %}
+                {% if loop.changed(post.created.date()) %}
+                <h3>{{ post.created.date() }}</h3>
+                <hr>
+                {% endif %}
+<pre><code class="markdown">{% if post.tags|length > 0 %}{% for tag in post.tags %}#{{ tag.text }} {% endfor %}
+
+{% endif %}{{ post.text }}
+</code></pre>
+            {% endfor %}
+        <script>
+            hljs.initHighlightingOnLoad();
+        </script>
+    </body>
+</html>

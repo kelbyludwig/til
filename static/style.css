@@ -1,0 +1,34 @@
+body {
+    margin: 0 auto;
+    max-width: 50em;
+    font-family: "Arial", sans-serif;
+    font-size: 1.2em;
+    line-height: 1.2;
+    padding: 2em 1em;
+}
+
+textarea {
+	width: 98%;
+	height: 70%;
+    font-family: inherit;
+    font-size: inherit;
+	border: 3px solid #cccccc;
+	padding: 10px;
+}
+
+input[type="text"] {
+	width: 30%;
+    margin: 10px 5px 5px 10px;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+h2 {
+  margin-top: .5em;
+  padding-top: .5em;
+}
