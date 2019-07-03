@@ -1,11 +1,17 @@
 import datetime
-import config
 import hashlib
 import binascii
+import sys
 from functools import wraps
 from flask import Flask, Response, render_template, request, redirect, url_for
 from hmac import compare_digest as compare
 from flask_sqlalchemy import SQLAlchemy
+
+try:
+    import config
+except ImportError:
+    print("error: config.py not found!")
+    sys.exit(1)
 
 # app globals
 app = Flask(__name__)
@@ -168,7 +174,6 @@ def create():
 
 
 if __name__ == "__main__":
-    import sys
 
     if len(sys.argv) == 1:
         print("initializing sqlite")
