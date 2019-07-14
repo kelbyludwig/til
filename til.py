@@ -4,7 +4,7 @@ import binascii
 import sys
 import duo_web
 from functools import wraps
-from flask import Flask, Response, render_template, request, redirect, url_for
+from flask import Flask, Response, render_template, request, redirect, url_for, session
 from hmac import compare_digest as compare
 from flask_sqlalchemy import SQLAlchemy
 
@@ -18,6 +18,7 @@ except ImportError:
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = config.SQLITE_PATH
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.secret_key = config.SECRET
 db = SQLAlchemy(app)
 
 # helper
@@ -26,48 +27,17 @@ def render(template, **kw):
     return render_template(template, **kw)
 
 
-def hash_password(password):
-    """Returns a ASCII hex password hash using PBKDF2 configuration.
-    """
-    password = password.encode("utf-8")
-    h = hashlib.pbkdf2_hmac("sha256", password, config.SALT, config.ITERATIONS)
-    return binascii.hexlify(h)
-
-
-def credentials_valid(username, password):
-    """Returns a boolean indicating if the submitted credentials are valid.
-    """
-    pw_hash = hash_password(password)
-    username_valid = compare(username, config.USERNAME)
-    password_valid = compare(pw_hash, config.PASSWORD_HASH)
-    return username_valid & password_valid
-
-
-def authentication_prompt():
-    """Prompts for HTTP Basic Auth
-    """
-    return Response(
-        "please submit credentials",
-        401,
-        {"WWW-Authenticate": 'Basic realm="Login Required"'},
-    )
-
-
 def auth(f):
-    """A decorator to add HTTP Basic Auth to routes.
+    """A decorator to add authN to routes.
 
     If the user has configured a None username, no authentication is required.
     """
-
     @wraps(f)
     def decorated(*args, **kwargs):
-        creds = request.authorization
-        if config.USERNAME is None:
+        session_username = session.get('username', None)
+        if session_username == config.USERNAME:
             return f(*args, **kwargs)
-        if not creds or not credentials_valid(creds.username, creds.password):
-            return authentication_prompt()
-        return f(*args, **kwargs)
-
+        return redirect(url_for("authn"))
     return decorated
 
 
@@ -162,7 +132,7 @@ def duo():
     username = request.form["username"]
     ikey = config.DUO_IKEY
     skey = config.DUO_SKEY
-    akey = config.DUO_AKEY
+    akey = config.SECRET
     host = config.DUO_HOST
     sig_request = duo_web.sign_request(ikey, skey, akey, username)
     return render("duo.html", host=host, sig_request=sig_request)
@@ -172,9 +142,10 @@ def duo_validate():
     sig_response = request.form["sig_response"]
     ikey = config.DUO_IKEY
     skey = config.DUO_SKEY
-    akey = config.DUO_AKEY
+    akey = config.SECRET
     username = duo_web.verify_response(ikey, skey, akey, sig_response)
-    return 'hi %s' % username
+    session['username'] = username
+    return redirect(url_for('index'))
 
 @app.route("/", methods=["GET"])
 @auth
