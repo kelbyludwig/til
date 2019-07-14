@@ -12,5 +12,7 @@ USERNAME = None  # change to e.g. "my_username" to enable authentication
 # first-factor.
 DUO_IKEY = "DI..."
 DUO_SKEY = "this should be random"
-DUO_AKEY = "this should also be random"
 DUO_HOST = "api-stuff.duosecurity.com"
+
+# This is used for flask and as the Duo akey
+SECRET = "this should also be random"
