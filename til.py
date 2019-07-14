@@ -176,7 +176,3 @@ if __name__ == "__main__":
         with open("README.md", "r") as rf:
             Post.create(text=rf.read(), tag_string="blogging")
             db.session.commit()
-    if len(sys.argv) == 2:
-        print("password hash:")
-        password = sys.argv[1]
-        print(hash_password(password))
