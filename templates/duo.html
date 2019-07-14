@@ -1,0 +1,23 @@
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <iframe id="duo_iframe"></iframe>
+    <style>
+        #duo_iframe {
+            width: 100%;
+            min-width: 304px;
+            max-width: 620px;
+            height: 330px;
+            border: none;
+        }
+    </style>
+    <script src="https://api.duosecurity.com/frame/hosted/Duo-Web-v2.min.js"></script>
+    <script>
+        Duo.init({
+            'host': '{{ host }}',
+            'sig_request': '{{ sig_request }}',
+            'post_action': '{{ url_for("duo_validate") }}'
+        });
+    </script>
+</body>
