@@ -32,12 +32,14 @@ def auth(f):
 
     If the user has configured a None username, no authentication is required.
     """
+
     @wraps(f)
     def decorated(*args, **kwargs):
-        session_username = session.get('username', None)
+        session_username = session.get("username", None)
         if session_username == config.USERNAME:
             return f(*args, **kwargs)
         return redirect(url_for("authn"))
+
     return decorated
 
 
@@ -127,6 +129,7 @@ class PostTag(db.Model):
 def authn():
     return render("authn.html")
 
+
 @app.route("/duo", methods=["POST"])
 def duo():
     username = request.form["username"]
@@ -137,6 +140,7 @@ def duo():
     sig_request = duo_web.sign_request(ikey, skey, akey, username)
     return render("duo.html", host=host, sig_request=sig_request)
 
+
 @app.route("/duo_validate", methods=["POST"])
 def duo_validate():
     sig_response = request.form["sig_response"]
@@ -144,8 +148,9 @@ def duo_validate():
     skey = config.DUO_SKEY
     akey = config.SECRET
     username = duo_web.verify_response(ikey, skey, akey, sig_response)
-    session['username'] = username
-    return redirect(url_for('index'))
+    session["username"] = username
+    return redirect(url_for("index"))
+
 
 @app.route("/", methods=["GET"])
 @auth
