@@ -152,6 +152,14 @@ class PostTag(db.Model):
 
 
 # routes
+@app.route("/authn", methods=["GET"])
+def authn():
+    return render("authn.html")
+
+@app.route("/duo", methods=["POST"])
+def duo():
+    return 'hi'
+
 @app.route("/", methods=["GET"])
 @auth
 def index():
