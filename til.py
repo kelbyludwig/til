@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import binascii
 import sys
+import duo_web
 from functools import wraps
 from flask import Flask, Response, render_template, request, redirect, url_for
 from hmac import compare_digest as compare
@@ -158,7 +159,22 @@ def authn():
 
 @app.route("/duo", methods=["POST"])
 def duo():
-    return 'hi'
+    username = request.form["username"]
+    ikey = config.DUO_IKEY
+    skey = config.DUO_SKEY
+    akey = config.DUO_AKEY
+    host = config.DUO_HOST
+    sig_request = duo_web.sign_request(ikey, skey, akey, username)
+    return render("duo.html", host=host, sig_request=sig_request)
+
+@app.route("/duo_validate", methods=["POST"])
+def duo_validate():
+    sig_response = request.form["sig_response"]
+    ikey = config.DUO_IKEY
+    skey = config.DUO_SKEY
+    akey = config.DUO_AKEY
+    username = duo_web.verify_response(ikey, skey, akey, sig_response)
+    return 'hi %s' % username
 
 @app.route("/", methods=["GET"])
 @auth
