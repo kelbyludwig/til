@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+        <title>{{ blog_name }}</title>
+    </head>
+    <body>
+        <h1>{{ blog_name }}</h1>
+            <p>a write-once microblog</p>
+            <h2>login</h2>
+            <form id="authn" method="post" action="{{ url_for('duo') }}">
+                username: <input type="text" name="username">
+                <button type="submit">submit</button>
+            </form>
+    </body>
+</html>
