@@ -9,11 +9,6 @@ flask-sqlalchemy = "*"
 gunicorn = "*"
 duo-web = "*"
 
-[dev-packages]
-ipython = "*"
-ipdb = "*"
-black = "*"
-
 [requires]
 python_version = "3.6"
 
